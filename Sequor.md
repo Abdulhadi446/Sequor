@@ -17,20 +17,18 @@ This is not just my setup. Anyone running scheduled agent pipelines (blogs, soci
 - No retries, no checks, no resume. A failure at step 4 means redoing steps 1 to 3.
 - Tools like n8n are integration-first and heavy. LangGraph is powerful but too hard for most people.
 
-<div align="center">
-  <p>💡 <strong>Visualizing the problem:</strong></p>
-  <pre><code class="mermaid">
+> 💡 **Visualizing the problem:**
+
+```mermaid
 graph TD
-    A[Single Cron Prompt] -->|Research| B[Write Draft]
-    B -->|Check| C[Publish]
-    C -->|Done| D[User sees output]
+    A["Single Cron Prompt"] -->|Research| B["Write Draft"]
+    B -->|Check| C["Publish"]
+    C -->|Done| D["User sees output"]
     style A fill:#ffdddd,stroke:#ff0000,stroke-width:2px
     style D fill:#ffdddd,stroke:#ff0000,stroke-width:2px
-    %% Highlight the single point of failure
-    classDef problem fill:#ffdddd,stroke:#ff0000,stroke-width:2px;
-    class A,D problem;
-  </code></pre>
-</div>
+    classDef problem fill:#ffdddd,stroke:#ff0000,stroke-width:2px
+    class A,D problem
+```
 
 ## The solution
 
@@ -45,77 +43,66 @@ Small, focused agent nodes chained on a canvas:
 - **Triggers:** manual, cron with timezone, and webhook.
 - **Our own MCP server:** other agents can create workflows, trigger runs and read results. Agents that automate agents.
 
-<div align="center">
-  <p>🔧 <strong>Visualizing the solution architecture:</strong></p>
-  <pre><code class="mermaid">
+> 🔧 **Visualizing the solution architecture:**
+
+```mermaid
 graph TB
     subgraph Canvas["Canvas Editor"]
-        A[Agent Node 1] -->|handoff| B[Agent Node 2]
-        B -->|handoff| C[Agent Node 3]
-        C -->|handoff| D[Agent Node 4]
+        A["Agent Node 1"] -->|handoff| B["Agent Node 2"]
+        B -->|handoff| C["Agent Node 3"]
+        C -->|handoff| D["Agent Node 4"]
     end
     style Canvas fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
     
     subgraph Node["Agent Node Structure"]
-        N1[Prompt] --> N2[Model Selection] --> N3[MCP Servers] --> N4[Timeout/Retry] --> N5[Output Contract]
+        N1["Prompt"] --> N2["Model Selection"] --> N3["MCP Servers"] --> N4["Timeout/Retry"] --> N5["Output Contract"]
     end
     style Node fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
     
     subgraph Contracts["Output Contracts & Checks"]
-        O1[Structured Output] -->|Validate| O2[Schema Check]
-        O2 -->|Pass| O3[Next Node Handoff]
-        O2 -->|Fail| R1[Retry]
+        O1["Structured Output"] -->|Validate| O2["Schema Check"]
+        O2 -->|Pass| O3["Next Node Handoff"]
+        O2 -->|Fail| R1["Retry"]
         R1 --> O1
     end
     style Contracts fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
     
-    MCP["Our MCP Server"] -->|Create/Trigger| Canvas
-    Canvas -->|Read Results| MCP
+    MCP["Our MCP Server"] -->|Create/Trigger| A
+    D -->|Read Results| MCP
     style MCP fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-  </code></pre>
-</div>
+```
 
 ## Example workflow: Daily Blog Template
 
 Here's a concrete end-to-end workflow that demonstrates the power of agent-per-node architecture:
 
-<div align="center">
-  <p>📝 <strong>Daily Blog Workflow:</strong></p>
-  <pre><code class="mermaid">
+> 📝 **Daily Blog Workflow:**
+
+```mermaid
 graph TD
-    %% Define nodes with distinct styles
     subgraph Workflow["Daily Blog Workflow"]
-        Ideation --> Research --> Outlining --> Writing --> Editing --> Formatting --> Publishing
+        N1["<b>Node 1: Ideation</b>"]
+        N2["<b>Node 2: Research</b>"]
+        N3["<b>Node 3: Outlining</b>"]
+        N4["<b>Node 4: Writing</b>"]
+        N5["<b>Node 5: Editing</b>"]
+        N6["<b>Node 6: Formatting</b>"]
+        N7["<b>Node 7: Publishing</b>"]
+        End(["<b>End: Published URL</b>"])
+
+        N1 -->|handoff: topic + angle| N2
+        N2 -->|handoff: sources + context| N3
+        N3 -->|handoff: structure + keypoints| N4
+        N4 -->|handoff: draft text| N5
+        N5 -->|handoff: polished draft| N6
+        N6 -->|handoff: markdown + seo| N7
+        N7 -->|output: live URL| End
     end
-    
-    %% Node styles
-    ideation((<b>Node 1:<br>Ideation</b>)) 
-    research((<b>Node 2:<br>Research</b>))
-    outlining((<b>Node 3:<br>Outlining</b>))
-    writing((<b>Node 4:<br>Writing</b>))
-    editing((<b>Node 5:<br>Editing</b>))
-    formatting((<b>Node 6:<br>Formatting</b>))
-    publishing((<b>Node 7:<br>Publishing</b>))
-    
-    %% Connections
-    ideation -->|handoff: topic+angle| research
-    research -->|handoff: sources+context| outlining
-    outlining -->|handoff: structure+keypoints| writing
-    writing -->|handoff: draft text| editing
-    editing -->|handoff: polished draft| formatting
-    formatting -->|handoff: markdown+seo| publishing
-    publishing -->|output: published URL| End
-    
-    %% Contract annotations
-    classDef contract fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
-    class Ideation,Research,Outlining,Writing,Editing,Formatting,Publishing contract;
-    
-    classDef check fill:#fff3e0,stroke:#ef6c00,stroke-width:1.5px,color:#e65100;
-    %% Check nodes are implicit between steps
-    
-    style End fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-  </code></pre>
-</div>
+
+    classDef contract fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    class N1,N2,N3,N4,N5,N6,N7 contract
+    style End fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+```
 
 ### Node Details for Daily Blog Workflow
 
@@ -131,61 +118,61 @@ graph TD
 
 ## Example workflow: Cold Outreach Sequence
 
-<div align="center">
-  <p>💼 <strong>Cold Outreach Workflow:</strong></p>
-  <pre><code class="mermaid">
+> 💼 **Cold Outreach Workflow:**
+
+```mermaid
 graph TD
     subgraph Outreach["Cold Outreach Sequence"]
-        Identify --> Enrich --> Personalize --> Draft --> Review --> Send --> Track
+        N1["<b>Node 1: Identify Leads</b>"]
+        N2["<b>Node 2: Enrich Data</b>"]
+        N3["<b>Node 3: Personalize</b>"]
+        N4["<b>Node 4: Draft Email</b>"]
+        N5["<b>Node 5: Review</b>"]
+        N6["<b>Node 6: Send Email</b>"]
+        N7["<b>Node 7: Track Results</b>"]
+        End(["<b>End: Results Analyzed</b>"])
+
+        N1 -->|handoff: company + role| N2
+        N2 -->|handoff: tech_stack + funding| N3
+        N3 -->|handoff: custom_opener + value_prop| N4
+        N4 -->|handoff: email_copy + subject| N5
+        N5 -->|handoff: approved + changes| N6
+        N6 -->|handoff: message_id + sent_at| N7
+        N7 -->|output: open + reply rates| End
     end
-    
-    identify((<b>Identify Leads</b>))
-    enrich((<b>Enrich Data</b>))
-    personalize((<b>Personalize</b>))
-    draft((<b>Draft Email</b>))
-    review((<b>Review</b>))
-    send((<b>Send Email</b>))
-    track((<b>Track Results</b>))
-    
-    identify -->|handoff: company+role| enrich
-    enrich -->|handoff: tech_stack+funding| personalize
-    personalize -->|handoff: custom_opener+value_prop| draft
-    draft -->|handoff: email_copy+subject| review
-    review -->|handoff: approved+changes| send
-    send -->|handoff: message_id+sent_at| track
-    track -->|output: open_rate+reply_rate| End
-    
-    style End fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-  </code></pre>
-</div>
+
+    classDef step fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    class N1,N2,N3,N4,N5,N6,N7 step
+    style End fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+```
 
 ## Example workflow: Social Video Repurposing
 
-<div align="center">
-  <p>🎬 <strong>Social Video Workflow:</strong></p>
-  <pre><code class="mermaid">
+> 🎬 **Social Video Workflow:**
+
+```mermaid
 graph TD
     subgraph Video["Social Video Pipeline"]
-        Source --> Transcribe --> Analyze --> Script --> Generate --> Publish
+        N1["<b>Node 1: Source Input</b>"]
+        N2["<b>Node 2: Transcribe</b>"]
+        N3["<b>Node 3: Analyze Hooks</b>"]
+        N4["<b>Node 4: Write Script</b>"]
+        N5["<b>Node 5: Generate Clips</b>"]
+        N6["<b>Node 6: Publish Clips</b>"]
+        End(["<b>End: Live on Platforms</b>"])
+
+        N1 -->|handoff: video_url + topic| N2
+        N2 -->|handoff: transcript + timestamps| N3
+        N3 -->|handoff: best_moments + viral_hooks| N4
+        N4 -->|handoff: scripts + timecodes| N5
+        N5 -->|handoff: clips + captions| N6
+        N6 -->|output: platform URLs + engagement| End
     end
-    
-    source((<b>Source Input</b>))
-    transcribe((<b>Transcribe</b>))
-    analyze((<b>Analyze Hooks</b>))
-    script((<b>Write Script</b>))
-    generate((<b>Generate Clips</b>))
-    publish((<b>Publish Clips</b>))
-    
-    source -->|handoff: video_url+topic| transcribe
-    transcribe -->|handoff: transcript+timestamps| analyze
-    analyze -->|handoff: best_moments+viral_hooks| script
-    script -->|handoff: scripts+timecodes| generate
-    generate -->|handoff: clips+captions| publish
-    publish -->|output: platform_urls+engagement| End
-    
-    style End fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-  </code></pre>
-</div>
+
+    classDef step fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    class N1,N2,N3,N4,N5,N6,N7 step
+    style End fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+```
 
 ### Node Details for Social Video Workflow
 
@@ -211,23 +198,22 @@ graph TD
 9. Concrete starter templates people already pay for: daily blog, social video, cold outreach.
 10. A clear build plan that proves the engine with a fake agent before touching a real runtime.
 
-<div align="center">
-  <p>📊 <strong>Visual comparison of approaches:</strong></p>
-  <pre><code class="mermaid">
+> 📊 **Visual comparison of approaches:**
+
+```mermaid
 graph LR
-    n8n[<b>n8n</b>] -->|Integration-first| |Heavy| 
-    langgraph[<b>LangGraph</b>] -->|Code-first| |Complex| 
-    sequor[<b>Sequor</b>] -->|Agent-per-node| |Balanced| 
-    
-    classDef n8n fill:#e3f2fd,stroke:#1565c0;
-    classDef langgraph fill:#fff3e0,stroke:#ef6c00;
-    classDef sequor fill:#e8f5e9,stroke:#2e7d32;
-    
-    class n8n n8n;
-    class langgraph langgraph;
-    class sequor sequor;
-  </code></pre>
-</div>
+    n8n["<b>n8n</b>"] --> A1["Integration-first"] --> A2["Heavy"]
+    langgraph["<b>LangGraph</b>"] --> B1["Code-first"] --> B2["Complex"]
+    sequor["<b>Sequor</b>"] --> C1["Agent-per-node"] --> C2["Reliable & Balanced"]
+
+    classDef n8n fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px
+    classDef langgraph fill:#fff3e0,stroke:#ef6c00,stroke-width:1.5px
+    classDef sequor fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+
+    class n8n,A1,A2 n8n
+    class langgraph,B1,B2 langgraph
+    class sequor,C1,C2 sequor
+```
 
 ## Why me: backed by my own ecosystem
 
@@ -240,28 +226,27 @@ Most teams would need to build or buy every layer. I already own them:
 
 The product ships batteries-included on day one, and everything stays swappable. Bring your own key, your own MCP servers, your own runtime.
 
-<div align="center">
-  <p>🎯 <strong>Ecosystem integration diagram:</strong></p>
-  <pre><code class="mermaid">
+> 🎯 **Ecosystem integration diagram:**
+
+```mermaid
 graph TB
-    TR["Trillionir AI"] -.->|LLM Routing| Sequor
+    TR["Trillionir AI"] -.->|LLM Routing| Sequor["Sequor Engine"]
     AO["AgentOS"] -.->|Runtime Toggle| Sequor
     SO["Sodeom"] -.->|Search/Email| Sequor
     RAG["RAG Server"] -.->|PDF/RAG| Sequor
     
-    Sequor -->|Agent Nodes| Canvas
+    Sequor -->|Agent Nodes| Canvas["Canvas & Workflows"]
     Canvas -->|Output Contracts| TR
     Canvas -->|MCP Attachments| AO
     Canvas -->|Tools| SO
     Canvas -->|Data| RAG
     
-    classDef platform fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-    classDef sequor fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef platform fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef sequor fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
     
-    class TR,AO,SO,RAG platform;
-    class Sequor sequor;
-  </code></pre>
-</div>
+    class TR,AO,SO,RAG platform
+    class Sequor,Canvas sequor
+```
 
 ## Who it is for (rough estimates)
 
@@ -277,11 +262,10 @@ graph TB
 
 About 85% are technical or semi-technical, so the pitch is reliability for builders, not no-code for everyone.
 
-<div align="center">
-  <p>👥 <strong>Target audience visualization:</strong></p>
-  <pre><code class="mermaid">
-pie
-    title "Sequor Target Audience Distribution"
+> 👥 **Target audience visualization:**
+
+```mermaid
+pie title Sequor Target Audience Distribution
     "Solo devs & indie hackers" : 30
     "Content/social operators" : 20
     "Technical founders" : 15
@@ -289,8 +273,7 @@ pie
     "n8n/Zapier power users" : 10
     "Small dev teams" : 8
     "Non-technical users" : 5
-</code></pre>
-</div>
+```
 
 ## Honest risks and how we handle them
 
@@ -300,31 +283,30 @@ pie
 - **Security.** Agents with secrets need real isolation. Container isolation is on by default, with least-privilege tools per node.
 - **Debugging UX.** Agent logs are huge. The run view has to make failures obvious in seconds.
 
-<div align="center">
-  <p>⚠️ <strong>Risk mitigation strategy:</strong></p>
-  <pre><code class="mermaid">
+> ⚠️ **Risk mitigation strategy:**
+
+```mermaid
 graph TD
-    R1[Scope Risk] -->|Mitigate| M1[v1 minimal feature set]
-    R2[Competition Risk] -->|Mitigate| M2[Agent-per-node uniqueness]
-    R3[Cost Risk] -->|Mitigate| M3[Flat-rate provider + AgentOS]
-    R4[Security Risk] -->|Mitigate| M4[Container isolation + least-privilege]
-    R5[Debugging Risk] -->|Mitigate| M5[Live run view + per-node logs]
+    R1["Scope Risk"] -->|Mitigate| M1["v1 minimal feature set"]
+    R2["Competition Risk"] -->|Mitigate| M2["Agent-per-node uniqueness"]
+    R3["Cost Risk"] -->|Mitigate| M3["Flat-rate provider + AgentOS"]
+    R4["Security Risk"] -->|Mitigate| M4["Container isolation + least-privilege"]
+    R5["Debugging Risk"] -->|Mitigate| M5["Live run view + per-node logs"]
     
-    M1 -->|Enables| P1[Faster v1 launch]
+    M1 -->|Enables| P1["Faster v1 launch"]
     M2 -->|Creates| P1
-    M3 -->|Reduces| P2[Affordable per-node cost]
-    M4 -->|Ensures| P2[Real security story]
-    M5 -->|Gives| P3[Trust in the product]
+    M3 -->|Reduces| P2["Affordable per-node cost"]
+    M4 -->|Ensures| P2["Real security story"]
+    M5 -->|Gives| P3["Trust in the product"]
     
-    classDef risk fill:#ffebee,stroke:#c62828,stroke-width:2px;
-    classDef mitigate fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    classDef promise fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef risk fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef mitigate fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef promise fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
     
-    class R1,R2,R3,R4,R5 risk;
-    class M1,M2,M3,M4,M5 mitigate;
-    class P1,P2,P3 promise;
-  </code></pre>
-</div>
+    class R1,R2,R3,R4,R5 risk
+    class M1,M2,M3,M4,M5 mitigate
+    class P1,P2,P3 promise
+```
 
 ## Roadmap
 
@@ -338,13 +320,13 @@ graph TD
 
 First proof point: the daily blog template running reliably end to end, compared against my current cron setup.
 
-<div align="center">
-  <p>🏁 <strong>Roadmap milestones visualization:</strong></p>
-  <pre><code class="mermaid">
+> 🏁 **Roadmap milestones visualization:**
+
+```mermaid
 gantt
     title Sequor Roadmap v1-v2
-    dateFormat  YYYY-MM
-    axis_format  %b
+    dateFormat YYYY-MM
+    axisFormat %b
     
     section Phase 1: Foundation
     Auth & Docker         :a1, 2026-01, 1m
@@ -363,16 +345,15 @@ gantt
     section Phase 4: Distribution
     Schedules & Webhooks  :d1, 2026-11, 1m
     Public API + MCP      :d2, after d1, 1m
-    Starter Templates     :d3, after d2, 0.5m
-</code></pre>
-</div>
+    Starter Templates     :d3, after d2, 15d
+```
 
 ## What I am asking you
 
 - Honest feedback: would you use this, and what would stop you?
 - Your own pain: what automations do you run that break or skip steps?
 - Early testing once the first template runs.
-- Interest in helping build or co-found: \[role and split to discuss\]
+- Interest in helping build or co-found: [role and split to discuss]
 
 ## Contact
 
