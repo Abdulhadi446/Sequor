@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0d1a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="600" height="400" fill="url(#heroGrad)"/>
+  
+  <!-- Decorative nodes -->
+  <circle cx="80" cy="80" r="40" fill="#00d4ff22" stroke="#00d4ff" stroke-width="2" filter="url(#glow)"/>
+  <circle cx="80" cy="80" r="20" fill="#00d4ff" opacity="0.3"/>
+  
+  <circle cx="520" cy="100" r="50" fill="#00ff8822" stroke="#00ff88" stroke-width="2" filter="url(#glow)"/>
+  <circle cx="520" cy="100" r="25" fill="#00ff88" opacity="0.3"/>
+  
+  <circle cx="120" cy="320" r="35" fill="#ffb80022" stroke="#ffb800" stroke-width="2" filter="url(#glow)"/>
+  <circle cx="120" cy="320" r="18" fill="#ffb800" opacity="0.3"/>
+  
+  <circle cx="480" cy="300" r="45" fill="#aa44ff22" stroke="#aa44ff" stroke-width="2" filter="url(#glow)"/>
+  <circle cx="480" cy="300" r="22" fill="#aa44ff" opacity="0.3"/>
+  
+  <!-- Connected lines -->
+  <path d="M 120,80 C 200,80 200,100 300,100" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
+  <path d="M 300,100 C 400,100 400,100 470,100" fill="none" stroke="#00ff88" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
+  <path d="M 120,320 C 200,320 200,300 300,300" fill="none" stroke="#ffb800" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
+  <path d="M 300,300 C 400,300 400,300 435,300" fill="none" stroke="#aa44ff" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
+  
+  <!-- Center logo -->
+  <circle cx="300" cy="200" r="60" fill="#00d4ff" filter="url(#glow)"/>
+  <text x="300" y="220" text-anchor="middle" font-family="system-ui, sans-serif" font-size="48" font-weight="bold" fill="#0d0d1a">S</text>
+  
+  <!-- Title -->
+  <text x="300" y="300" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="bold" fill="#fff">Sequor</text>
+  <text x="300" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#888">agent workflow builder</text>
+</svg>

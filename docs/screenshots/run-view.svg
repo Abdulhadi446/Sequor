@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0d1a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2a2a4a" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1440" height="900" fill="url(#bgGrad)"/>
+  <rect width="1440" height="900" fill="url(#grid)"/>
+  
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="280" height="900" fill="#12122a" stroke="#2a2a4a" stroke-width="1"/>
+  
+  <!-- Brand -->
+  <circle cx="50" cy="45" r="24" fill="#00d4ff" filter="url(#glow)"/>
+  <text x="50" y="52" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" fill="#0d0d1a">S</text>
+  <text x="90" y="40" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#fff">Sequor</text>
+  <text x="90" y="58" font-family="system-ui, sans-serif" font-size="11" fill="#888">agent workflows</text>
+  
+  <!-- New workflow button -->
+  <rect x="16" y="90" width="248" height="40" rx="8" fill="#00d4ff" filter="url(#glow)"/>
+  <text x="140" y="116" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#0d0d1a">+ New workflow</text>
+  
+  <!-- Workflows section -->
+  <text x="16" y="160" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#888" text-transform="uppercase" letter-spacing="1">Workflows</text>
+  
+  <!-- Workflow list items -->
+  <g font-family="system-ui, sans-serif" font-size="13" fill="#fff">
+    <rect x="12" y="170" width="256" height="44" rx="6" fill="#001a3a"/>
+    <text x="24" y="192">📝 Daily Blog Template</text>
+    <text x="24" y="206" font-size="11" fill="#888">7 nodes • updated 2h ago</text>
+    
+    <rect x="12" y="224" width="256" height="44" rx="6" fill="#1a1a3a"/>
+    <text x="24" y="246">💼 Cold Outreach Sequence</text>
+    <text x="24" y="260" font-size="11" fill="#888">7 nodes • updated 1d ago</text>
+    
+    <rect x="12" y="278" width="256" height="44" rx="6" fill="#1a1a3a"/>
+    <text x="24" y="300">🎬 Social Video Pipeline</text>
+    <text x="24" y="314" font-size="11" fill="#888">6 nodes • updated 3d ago</text>
+  </g>
+  
+  <!-- Main canvas area -->
+  <rect x="280" y="64" width="1160" height="836" fill="#0d0d1a"/>
+  
+  <!-- Canvas grid lines -->
+  <g stroke="#1a1a3a" stroke-width="0.5">
+    <line x1="280" y1="64" x2="1440" y2="64"/>
+    <line x1="280" y1="164" x2="1440" y2="164"/>
+    <line x1="280" y1="264" x2="1440" y2="264"/>
+    <line x1="280" y1="364" x2="1440" y2="364"/>
+    <line x1="280" y1="464" x2="1440" y2="464"/>
+    <line x1="280" y1="564" x2="1440" y2="564"/>
+    <line x1="280" y1="664" x2="1440" y2="664"/>
+    <line x1="280" y1="764" x2="1440" y2="764"/>
+  </g>
+  
+  <!-- Nodes on canvas -->
+  <g font-family="system-ui, sans-serif">
+    <!-- Trigger node (green) -->
+    <g transform="translate(400, 180)">
+      <ellipse cx="120" cy="40" rx="110" ry="36" fill="#00ff8822" stroke="#00ff88" stroke-width="2" filter="url(#glow)"/>
+      <circle cx="232" cy="40" r="8" fill="#00ff88"/>
+      <text x="120" y="32" text-anchor="middle" font-size="13" font-weight="600" fill="#00ff88">🚀 Trigger: Manual</text>
+      <text x="120" y="48" text-anchor="middle" font-size="11" fill="#888">starts workflow</text>
+    </g>
+    
+    <!-- Edge: Trigger -> Ideation -->
+    <path d="M 512,216 C 650,216 650,300 700,300" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L9,3 Z" fill="#444"/>
+      </marker>
+    </defs>
+    
+    <!-- Ideation node (blue) -->
+    <g transform="translate(700, 260)">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#00d4ff15" stroke="#00d4ff" stroke-width="2" filter="url(#glow)"/>
+      <circle cx="232" cy="40" r="8" fill="#00d4ff"/>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#00d4ff"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#00d4ff">1. Ideation</text>
+      <text x="32" y="48" font-size="11" fill="#ccc">Generate 3 blog topics</text>
+      <text x="200" y="68" font-size="10" fill="#666">{topic, angle, audience}</text>
+    </g>
+    
+    <!-- Edge: Ideation -> Research -->
+    <path d="M 820,340 C 950,340 950,400 700,400" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- Research node (blue) -->
+    <g transform="translate(700, 360)">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#00d4ff15" stroke="#00d4ff" stroke-width="2"/>
+      <circle cx="232" cy="40" r="8" fill="#00d4ff"/>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#00d4ff"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#00d4ff">2. Research</text>
+      <text x="32" y="48" font-size="11" fill="#ccc">Search & summarize 5 sources</text>
+      <text x="200" y="68" font-size="10" fill="#666">{sources, key_points, summary}</text>
+    </g>
+    
+    <!-- Edge: Research -> Outlining -->
+    <path d="M 820,440 C 950,440 950,500 700,500" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- Outlining node (blue) -->
+    <g transform="translate(700, 460)">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#00d4ff15" stroke="#00d4ff" stroke-width="2"/>
+      <circle cx="232" cy="40" r="8" fill="#00d4ff"/>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#00d4ff"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#00d4ff">3. Outlining</text>
+      <text x="32" y="48" font-size="11" fill="#ccc">Create structured outline</text>
+      <text x="200" y="68" font-size="10" fill="#666">{outline, h2s, h3s}</text>
+    </g>
+    
+    <!-- Edge: Outlining -> Writing -->
+    <path d="M 820,540 C 950,540 950,600 700,600" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- Writing node (blue) - currently running pulse -->
+    <g transform="translate(700, 560)">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#00d4ff25" stroke="#00d4ff" stroke-width="2" filter="url(#glow)"/>
+      <circle cx="232" cy="40" r="8" fill="#00d4ff">
+        <animate attributeName="r" values="8;12;8" dur="1s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite"/>
+      </circle>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#00d4ff"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#00d4ff">4. Writing ⚡</text>
+      <text x="32" y="48" font-size="11" fill="#ccc">Write full draft</text>
+      <text x="200" y="68" font-size="10" fill="#666">{draft, word_count}</text>
+      <circle cx="20" cy="60" r="6" fill="#00d4ff">
+        <animate attributeName="opacity" values="1;0.2;1" dur="0.8s" repeatCount="indefinite"/>
+      </circle>
+      <text x="30" y="64" font-size="10" fill="#00d4ff">running...</text>
+    </g>
+    
+    <!-- Edge: Writing -> Editing -->
+    <path d="M 820,640 C 950,640 950,700 700,700" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="5,5"/>
+    
+    <!-- Editing node (blue) - pending -->
+    <g transform="translate(700, 760)" opacity="0.5">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#00d4ff10" stroke="#00d4ff" stroke-width="1"/>
+      <circle cx="232" cy="40" r="8" fill="#444"/>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#444"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#666">5. Editing</text>
+      <text x="32" y="48" font-size="11" fill="#555">Check flow & brand voice</text>
+      <text x="200" y="68" font-size="10" fill="#444">{polished, edits_made}</text>
+    </g>
+    
+    <!-- Formatting node -->
+    <path d="M 820,740 C 950,740 950,800 700,800" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="5,5"/>
+    <g transform="translate(700, 760)" opacity="0.5">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#00d4ff10" stroke="#00d4ff" stroke-width="1"/>
+      <circle cx="232" cy="40" r="8" fill="#444"/>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#444"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#666">6. Formatting</text>
+      <text x="32" y="48" font-size="11" fill="#555">Markdown + SEO</text>
+      <text x="200" y="68" font-size="10" fill="#444">{markdown, meta, seo}</text>
+    </g>
+    
+    <!-- Publishing node (purple) -->
+    <path d="M 820,840 C 950,840 950,900 700,900" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="5,5"/>
+    <g transform="translate(700, 860)" opacity="0.5">
+      <rect x="0" y="0" width="240" height="80" rx="12" fill="#aa44ff15" stroke="#aa44ff" stroke-width="1"/>
+      <circle cx="232" cy="40" r="8" fill="#444"/>
+      <rect x="8" y="8" width="10" height="10" rx="2" fill="#444"/>
+      <text x="32" y="28" font-size="13" font-weight="600" fill="#aa44ff">7. Publishing</text>
+      <text x="32" y="48" font-size="11" fill="#555">Publish to CMS</text>
+      <text x="200" y="68" font-size="10" fill="#444">{url, status, published_at}</text>
+    </g>
+  </g>
+  
+  <!-- Palette -->
+  <rect x="280" y="820" width="1160" height="80" fill="#12122a" stroke="#2a2a4a" stroke-width="1"/>
+  <text x="300" y="855" font-family="system-ui, sans-serif" font-size="12" fill="#666">+ Trigger  + Agent  + Check</text>
+  <text x="1300" y="855" text-anchor="end" font-family="system-ui, sans-serif" font-size="11" fill="#555">drag from node's bottom dot to connect</text>
+  
+  <!-- Inspector panel (right side) -->
+  <rect x="1050" y="180" width="370" height="600" fill="#12122a" stroke="#2a2a4a" stroke-width="1" rx="8"/>
+  <text x="1070" y="210" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#fff">Node: 4. Writing</text>
+  <text x="1070" y="235" font-family="system-ui, sans-serif" font-size="11" fill="#888">Type: Agent • Model: gpt-4o-mini</text>
+  
+  <rect x="1070" y="250" width="330" height="120" rx="6" fill="#0d0d1a" stroke="#2a2a4a"/>
+  <text x="1080" y="275" font-family="system-ui, sans-serif" font-size="11" fill="#888">Prompt</text>
+  <text x="1080" y="295" font-family="system-ui, sans-serif" font-size="12" fill="#ccc">Write a complete blog post following the outline...</text>
+  <text x="1080" y="315" font-family="system-ui, sans-serif" font-size="12" fill="#ccc">Target: ~1500 words. Tone: professional...</text>
+  
+  <text x="1070" y="390" font-family="system-ui, sans-serif" font-size="11" fill="#888">Output Contract (JSON Schema)</text>
+  <rect x="1070" y="400" width="330" height="100" rx="6" fill="#0d0d1a" stroke="#2a2a4a"/>
+  <text x="1080" y="420" font-family="monospace" font-size="10" fill="#00ff88">{</text>
+  <text x="1100" y="435" font-family="monospace" font-size="10" fill="#00ff88">draft: string,</text>
+  <text x="1100" y="450" font-family="monospace" font-size="10" fill="#00ff88">word_count: number</text>
+  <text x="1080" y="465" font-family="monospace" font-size="10" fill="#00ff88">}</text>
+  
+  <text x="1070" y="520" font-family="system-ui, sans-serif" font-size="11" fill="#888">MCP Servers</text>
+  <rect x="1070" y="530" width="330" height="60" rx="6" fill="#0d0d1a" stroke="#2a2a4a"/>
+  <text x="1080" y="550" font-family="system-ui, sans-serif" font-size="12" fill="#ccc">✓ Sodeom Search</text>
+  <text x="1080" y="570" font-family="system-ui, sans-serif" font-size="12" fill="#ccc">✓ Trillionir AI</text>
+  
+  <text x="1070" y="610" font-family="system-ui, sans-serif" font-size="11" fill="#888">Retry Policy</text>
+  <text x="1070" y="630" font-family="system-ui, sans-serif" font-size="12" fill="#ccc">Max retries: 1 • Timeout: 120s</text>
+</svg>
