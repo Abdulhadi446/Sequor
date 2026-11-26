@@ -1,0 +1,15 @@
+{
+  "name": "sequor",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Visual agent workflow builder: real model calls, real HTTP, contracts and resume.",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "check": "node --check server/db.js && node --check server/auth.js && node --check server/contract.js && node --check server/template.js && node --check server/credentials.js && node --check server/http-node.js && node --check server/nodes.js && node --check server/knowledge.js && node --check server/agents.js && node --check server/agent.js && node --check server/engine.js && node --check server/scheduler.js && node --check server/templates.js && node --check server/index.js && node --check public/app.mjs"
+  }
+}

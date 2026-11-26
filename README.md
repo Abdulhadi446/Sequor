@@ -33,9 +33,13 @@
 |:---:|
 | <img src="./docs/screenshots/hero.svg" alt="Sequor Brand" width="400"/> |
 
+| Demo Video |
+|:---:|
+| <video src="./docs/demo.mp4" controls width="600"></video> |
+
 </div>
 
-> 🎥 **Demo Video:** Coming soon
+> 🎥 **Demo Video:** Now available (docs/demo.mp4)
 
 ---
 
@@ -47,6 +51,7 @@
 - [Architecture](#-architecture)
 - [Features](#-features)
 - [Quick Start](#-quick-start)
+- [Demo Video](#-demo-video)
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Workflow Templates](#-workflow-templates)
@@ -225,7 +230,13 @@ graph TB
 - ✅ **Live Run View** — Real-time per-node status, logs, outputs, duration, cost
 - ✅ **Multiple Triggers** — Manual, cron with timezone, webhook
 - ✅ **MCP Server Support** — Attach MCP servers per node
-- ✅ **Starter Templates** — Daily blog, social video, cold outreach
+- ✅ **Starter Templates** — Daily blog, social video, cold outreach, webhook relay, fetch → code → brief
+- ✅ **Account Authentication** — Sign up, sign in, session cookies, per-user data isolation
+- ✅ **Encrypted Credentials** — Store provider API keys server-side, pick per node
+- ✅ **Knowledge Bases** — Local hashed or remote embeddings, searchable by agents
+- ✅ **Agent Registry** — Import opencode.json with AGENTS.md, skills, MCP servers, tool permissions
+- ✅ **HTTP & Fetch Nodes** — Real API calls, shaped with JavaScript code nodes
+- ✅ **Scheduler** — Active workflows fire on schedule even when the editor is closed
 - ✅ **Self-Hosted** — Run on your own infrastructure
 - ✅ **Model-Agnostic** — Works with OpenAI, Anthropic, or any OpenAI-compatible API
 - ✅ **Bring Your Own Key** — Use your preferred LLM provider
@@ -251,7 +262,7 @@ npm start
 open http://127.0.0.1:3000
 ```
 
-> 🎉 **That's it!** Sequor starts with a demo workflow pre-loaded.
+> 🎉 **That's it!** On first launch you create an account, then a starter workflow is pre-loaded for you.
 
 ### 🐳 Docker (Optional)
 

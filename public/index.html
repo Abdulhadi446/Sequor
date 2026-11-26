@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sequor — agent workflows</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <span class="logo-mark" title="Sequor">S</span>
+        <div class="tb-doc">
+          <input id="workflow-name" placeholder="Untitled workflow" spellcheck="false" autocomplete="off" />
+          <span id="save-state" class="save-state"></span>
+        </div>
+
+        <nav id="view-tabs" class="tb-tabs">
+          <button class="tb-tab active" data-view="editor">Editor</button>
+          <button class="tb-tab" data-view="executions">Executions</button>
+          <button class="tb-tab" data-view="credentials">Credentials</button>
+          <button class="tb-tab" data-view="knowledge">Knowledge</button>
+          <button class="tb-tab" data-view="agents">Agents</button>
+        </nav>
+
+        <div class="grow"></div>
+
+        <label class="switch" id="active-wrap" title="Run the schedule trigger automatically">
+          <input type="checkbox" id="active-toggle" />
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+          <span class="switch-label" id="active-label">Inactive</span>
+        </label>
+
+        <button class="btn" id="save-btn">Save</button>
+        <button class="btn primary" id="run-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5-11-6.5Z" fill="currentColor" /></svg>
+          Test workflow
+        </button>
+        <button class="user-btn" id="user-btn" title="Account" aria-label="Account"><span id="user-initials">S</span></button>
+      </header>
+
+      <div id="user-menu" hidden>
+        <div class="user-menu-head">
+          <strong id="user-name">Account</strong>
+          <span id="user-email"></span>
+        </div>
+        <button class="menu-item" id="logout-btn">Log out</button>
+      </div>
+
+      <aside id="rail">
+        <button class="rail-btn active" data-panel="workflows" title="Workflows" aria-label="Workflows">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6" /><rect x="13.5" y="3.5" width="7" height="7" rx="1.6" /><rect x="3.5" y="13.5" width="7" height="7" rx="1.6" /><rect x="13.5" y="13.5" width="7" height="7" rx="1.6" /></svg>
+        </button>
+        <button class="rail-btn" data-panel="templates" title="Templates" aria-label="Templates">
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17l-1.9-4.8L5.2 10.3l4.9-1.9L12 3.5Z" /><path d="M18.5 16.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z" /></svg>
+        </button>
+        <button class="rail-btn" data-panel="executions" title="Executions" aria-label="Executions">
+          <svg viewBox="0 0 24 24"><path d="M12 7v5l3.5 2" /><circle cx="12" cy="12" r="8.5" /></svg>
+        </button>
+        <button class="rail-btn" data-panel="credentials" title="Credentials" aria-label="Credentials">
+          <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4" /><path d="M12 12h8M17 12v3M20 12v2" /></svg>
+        </button>
+        <button class="rail-btn" data-panel="knowledge" title="Knowledge & memory" aria-label="Knowledge and memory">
+          <svg viewBox="0 0 24 24"><path d="M4.5 5.5h6a2.5 2.5 0 0 1 2.5 2.5v11a2 2 0 0 0-2-2H4.5z" /><path d="M19.5 5.5h-6A2.5 2.5 0 0 0 11 8v11a2 2 0 0 1 2-2h6.5z" /></svg>
+        </button>
+        <button class="rail-btn" data-panel="agents" title="Agents" aria-label="Agents">
+          <svg viewBox="0 0 24 24"><rect x="4.5" y="8" width="15" height="10.5" rx="3" /><path d="M12 3.2v4.3" /><circle cx="12" cy="3.2" r="1" /><circle cx="9.3" cy="12.6" r="1.15" fill="currentColor" stroke="none" /><circle cx="14.7" cy="12.6" r="1.15" fill="currentColor" stroke="none" /><path d="M9.7 15.8h4.6" /><path d="M4.5 11.5h-1.2M20.7 11.5h-1.2" /></svg>
+        </button>
+        <div class="grow"></div>
+        <button class="rail-btn" id="tidy-rail" title="Tidy layout" aria-label="Tidy layout">
+          <svg viewBox="0 0 24 24"><path d="M4 6h7M4 12h12M4 18h7" /><path d="M17 15l3 3-3 3" /></svg>
+        </button>
+        <span id="rail-model" class="rail-model" title="Model status"></span>
+      </aside>
+
+      <aside id="flyout" hidden>
+        <div class="flyout-head">
+          <span id="flyout-title">Workflows</span>
+          <button class="icon-x" id="flyout-close" title="Close">✕</button>
+        </div>
+        <div class="flyout-body" id="flyout-body"></div>
+        <div class="resizer resizer-x" id="flyout-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabindex="0" title="Drag to resize · double-click to reset"></div>
+      </aside>
+
+      <main id="stage">
+        <section class="view active" id="editor-view">
+          <div id="canvas-wrap">
+            <div id="canvas">
+              <svg id="edges" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                    <path d="M 1 1 L 9.5 5 L 1 9" fill="none" stroke="#8a8a8a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </marker>
+                  <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                    <path d="M 1 1 L 9.5 5 L 1 9" fill="none" stroke="#ea4b71" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </marker>
+                </defs>
+                <g id="edge-layer"></g>
+                <path id="temp-edge" class="temp-edge" d=""></path>
+              </svg>
+              <div id="nodes"></div>
+            </div>
+
+            <button id="add-node-btn" class="add-node-btn">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              Add node
+            </button>
+
+            <div id="empty-hint" hidden>
+              <p>This workflow is empty</p>
+              <p class="muted">Add a node, or start from a template.</p>
+            </div>
+
+            <div id="zoombar">
+              <button data-zoom="out" title="Zoom out">−</button>
+              <span id="zoom-label">100%</span>
+              <button data-zoom="in" title="Zoom in">+</button>
+              <span class="zoom-sep"></span>
+              <button id="zoom-fit" title="Zoom to fit">Fit</button>
+            </div>
+
+            <div id="canvas-hint">Drag to pan · scroll to zoom · double-click a node to edit</div>
+
+            <div id="add-popover" hidden>
+              <div class="pop-head">Add node</div>
+              <div class="pop-list" id="pop-list"></div>
+            </div>
+          </div>
+
+          <section id="dock" hidden>
+            <div class="resizer resizer-y" id="dock-resizer" role="separator" aria-orientation="horizontal" aria-label="Resize execution panel" tabindex="0" title="Drag to resize · double-click to reset"></div>
+            <header class="dock-head">
+              <span id="dock-dot" class="status-dot"></span>
+              <span id="dock-title" class="dock-title">Execution</span>
+              <span id="dock-meta" class="dock-meta"></span>
+              <div class="grow"></div>
+              <button class="btn sm" id="dock-resume" hidden>Resume</button>
+              <button class="btn sm" id="dock-cancel" hidden>Stop</button>
+              <button class="btn sm ghost" id="dock-close" title="Close">✕</button>
+            </header>
+            <div class="dock-body">
+              <div class="dock-list">
+                <div class="dock-list-head">
+                  <span>Node</span><span>Status</span><span>Time</span><span>Tokens</span>
+                </div>
+                <div id="dock-rows"></div>
+              </div>
+              <div class="dock-detail" id="dock-detail">
+                <div class="dock-empty">Select a node to inspect its output.</div>
+              </div>
+              <div class="resizer resizer-x" id="dock-split-resizer" role="separator" aria-orientation="vertical" aria-label="Resize execution columns" tabindex="0" title="Drag to resize · double-click to reset"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="executions-view">
+          <header class="page-head">
+            <h1>Executions</h1>
+            <span class="page-sub" id="exec-sub"></span>
+            <div class="grow"></div>
+            <button class="btn sm" id="refresh-exec">Refresh</button>
+          </header>
+          <div class="table-wrap" id="exec-table"></div>
+        </section>
+
+        <section class="view" id="credentials-view">
+          <header class="page-head">
+            <h1>Credentials</h1>
+            <span class="page-sub">Stored encrypted on the server. Keys are never sent back to this page.</span>
+          </header>
+          <div class="cred-layout">
+            <div class="cred-list" id="cred-list"></div>
+            <form class="cred-form" id="cred-form" autocomplete="off">
+              <h2>Add a provider</h2>
+              <label class="field">
+                <span>Provider</span>
+                <select id="cred-provider"></select>
+              </label>
+              <label class="field">
+                <span>Name</span>
+                <input id="cred-name" placeholder="OpenAI · gpt-4o-mini" />
+              </label>
+              <label class="field">
+                <span>API key</span>
+                <input id="cred-key" type="password" placeholder="sk-…" autocomplete="new-password" />
+              </label>
+              <label class="field">
+                <span>Base URL</span>
+                <input id="cred-base" placeholder="https://api.openai.com/v1" />
+              </label>
+              <label class="field">
+                <span>Default model</span>
+                <input id="cred-model" placeholder="gpt-4o-mini" />
+              </label>
+              <p class="form-note" id="cred-note"></p>
+              <button class="btn primary wide" type="submit">Save credential</button>
+              <p class="form-hint">
+                Everything runs from this server. A stored credential is picked per node in the node panel.
+              </p>
+            </form>
+          </div>
+        </section>
+        <section class="view" id="knowledge-view">
+          <header class="page-head">
+            <h1>Knowledge</h1>
+            <span class="page-sub" id="kb-sub">Documents your agents can retrieve, plus the workspace memory they write.</span>
+            <div class="grow"></div>
+            <button class="btn sm" id="refresh-kb">Refresh</button>
+          </header>
+          <div class="kb-layout">
+            <aside class="kb-list">
+              <form class="kb-new" id="kb-form" autocomplete="off">
+                <div class="kb-new-row">
+                  <input id="kb-name" placeholder="New knowledge base" aria-label="New knowledge base name" />
+                  <button class="btn sm primary" type="submit">Add</button>
+                </div>
+                <label class="field compact">
+                  <span>Embeddings</span>
+                  <select id="kb-backend">
+                    <option value="local">Local hashed (offline)</option>
+                    <option value="remote">Provider /embeddings</option>
+                  </select>
+                </label>
+                <div class="kb-remote" id="kb-remote" hidden>
+                  <label class="field compact">
+                    <span>Credential</span>
+                    <select id="kb-credential"></select>
+                  </label>
+                  <label class="field compact">
+                    <span>Embedding model</span>
+                    <input id="kb-model" placeholder="text-embedding-3-small" spellcheck="false" />
+                  </label>
+                </div>
+              </form>
+              <div id="kb-items"></div>
+            </aside>
+            <div class="kb-main" id="kb-main"></div>
+          </div>
+        </section>
+
+        <section class="view" id="agents-view">
+          <header class="page-head">
+            <h1>Agents</h1>
+            <span class="page-sub" id="agents-sub">Upload opencode.json with its AGENTS.md and skills, or paste the config. Model, key, skills, MCP servers and tool permissions in one selectable bundle.</span>
+            <div class="grow"></div>
+            <label class="btn sm" for="agent-import" title="Upload opencode.json together with AGENTS.md and skill .md files">Upload files</label>
+            <input id="agent-import" type="file" multiple accept=".json,.jsonc,.md,.mdx,.txt,application/json,text/plain" hidden />
+            <button class="btn sm" id="agent-paste-toggle">Paste config</button>
+            <button class="btn sm primary" id="new-agent">New agent</button>
+          </header>
+          <section class="agent-import" id="agent-import-panel" hidden>
+            <div class="agent-import-head">
+              <h2>Paste an opencode.json</h2>
+              <button class="btn sm" type="button" id="agent-import-close">Cancel</button>
+            </div>
+            <label class="field"><span>opencode.json (comments allowed)</span>
+              <textarea id="agent-paste-config" rows="10" spellcheck="false" placeholder='{ "model": "openrouter/…", "provider": { "openrouter": { "options": { "apiKey": "sk-or-…" } } } }'></textarea>
+            </label>
+            <div class="agent-grid">
+              <label class="field"><span>Agent name (optional)</span><input id="agent-paste-name" placeholder="Defaults to the config's name" /></label>
+              <label class="field"><span>AGENTS.md / SKILL.md body (optional)</span>
+                <textarea id="agent-paste-instructions" rows="5" spellcheck="false" placeholder="Paste instructions here to fill the config's referenced skills"></textarea>
+              </label>
+            </div>
+            <div class="agent-import-actions">
+              <button class="btn primary" type="button" id="agent-paste-import">Import pasted config</button>
+              <span class="hint">You can also drag opencode.json and its markdown files anywhere onto this page.</span>
+            </div>
+          </section>
+          <div class="agent-layout">
+            <aside class="agent-list" id="agent-list"></aside>
+            <div class="agent-main" id="agent-main"></div>
+          </div>
+        </section>
+      </main>
+
+      <aside id="ndv" hidden>
+        <div class="resizer resizer-x" id="ndv-resizer" role="separator" aria-orientation="vertical" aria-label="Resize node panel" tabindex="0" title="Drag to resize · double-click to reset"></div>
+        <header class="ndv-head">
+          <span class="ndv-icon" id="ndv-icon"></span>
+          <div class="ndv-title-wrap">
+            <input id="ndv-title" class="ndv-title" spellcheck="false" />
+            <span class="ndv-type" id="ndv-type">Agent</span>
+          </div>
+          <button class="icon-x" id="ndv-close" title="Close">✕</button>
+        </header>
+        <nav class="ndv-tabs">
+          <button class="ndv-tab active" data-tab="params">Parameters</button>
+          <button class="ndv-tab" data-tab="settings">Settings</button>
+          <button class="ndv-tab" data-tab="output">Output</button>
+        </nav>
+        <div class="ndv-body" id="ndv-body"></div>
+        <footer class="ndv-foot">
+          <button class="danger-link" id="ndv-delete">Delete node</button>
+          <div class="grow"></div>
+          <span class="ndv-foot-note">Ctrl/⌘ + Enter runs the workflow</span>
+        </footer>
+      </aside>
+    </div>
+
+    <div id="auth-gate" hidden>
+      <div class="auth-panel">
+        <div class="auth-brand">
+          <span class="logo-mark">S</span>
+          <div><strong>Sequor</strong><span>agent workflows</span></div>
+        </div>
+        <h1 id="auth-title">Sign in</h1>
+        <p class="auth-sub" id="auth-sub">Your workflows, runs and credentials belong to your account.</p>
+        <form id="auth-form" autocomplete="on">
+          <label class="field" id="auth-name-field" hidden>
+            <span>Name</span>
+            <input id="auth-name" autocomplete="name" placeholder="Ada Lovelace" />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input id="auth-email" type="email" autocomplete="username" placeholder="you@example.com" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 8 characters" required />
+          </label>
+          <div class="auth-error" id="auth-error"></div>
+          <button class="btn primary wide" id="auth-submit" type="submit">Sign in</button>
+        </form>
+        <button class="link-btn auth-toggle" id="auth-toggle" type="button">Create an account</button>
+        <p class="auth-note">Self-hosted · session cookie, HTTP-only</p>
+      </div>
+    </div>
+
+    <div id="toast" hidden></div>
+    <script type="module" src="/app.mjs"></script>
+  </body>
+</html>
