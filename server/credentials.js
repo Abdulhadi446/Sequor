@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as db from "./db.js";
+import { assertSafeUrl, assertSafeUrlStatic, privateNetworkAllowed, safeFetch } from "./security.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const KEY_FILE = process.env.SEQUOR_KEY_FILE || join(root, "data", ".secret");
@@ -58,6 +59,14 @@ export const PROVIDERS = [
 ];
 
 export const providerById = (id) => PROVIDERS.find((provider) => provider.id === id) ?? null;
+
+// A local model server (Ollama) is expected to live on loopback. Every other
+// provider has to be reachable on the public internet unless the operator
+// deliberately allows private networks.
+export const providerAllowsPrivate = (providerId) => providerId === "ollama" || privateNetworkAllowed;
+
+export const credentialAllowsPrivate = (credential) =>
+  credential?.provider === "ollama" || credential?.source === "env" || privateNetworkAllowed;
 
 function encryptionKey() {
   if (existsSync(KEY_FILE)) {
@@ -112,6 +121,7 @@ export function createCredential(body, userId) {
   const baseUrl = String(body.baseUrl ?? "").trim() || provider.baseUrl;
   if (!baseUrl) throw new Error("This provider needs a base URL (for example https://api.example.com/v1)");
   if (!/^https?:\/\//i.test(baseUrl)) throw new Error("Base URL must start with http:// or https://");
+  assertSafeUrlStatic(baseUrl, { allowPrivate: providerAllowsPrivate(provider.id), what: "Base URL" });
   if (!apiKey && !provider.keyless) throw new Error(`${provider.label} needs an API key`);
 
   const model = String(body.model ?? "").trim() || provider.model;
@@ -182,7 +192,12 @@ export async function testCredential(id, userId) {
   const started = Date.now();
   const headers = cred.apiKey ? { authorization: `Bearer ${cred.apiKey}` } : {};
   try {
-    const response = await fetch(`${cred.baseUrl}/models`, { headers, signal: AbortSignal.timeout(12000) });
+    const url = `${cred.baseUrl}/models`;
+    await assertSafeUrl(url, { allowPrivate: credentialAllowsPrivate(cred), what: "Base URL" });
+    const response = await safeFetch(url, {
+      headers,
+      signal: AbortSignal.timeout(12000),
+    }, { allowPrivate: credentialAllowsPrivate(cred), what: "Base URL" });
     const text = await response.text();
     if (!response.ok) {
       let detail = text.slice(0, 200);

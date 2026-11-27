@@ -3,6 +3,7 @@
 
 import { renderTemplate, renderDeep } from "./template.js";
 import { resolveCredential } from "./credentials.js";
+import { safeFetch } from "./security.js";
 
 function parseHeaders(raw) {
   if (!raw) return {};
@@ -75,7 +76,9 @@ export async function runHttpNode({ node, input, signal, userId }) {
     }
   }
 
-  const response = await fetch(url, { method, headers, body, signal, redirect: "follow" });
+  // safeFetch validates the URL and every redirect hop, so a workflow cannot
+  // be pointed at this machine, a private network or a metadata service.
+  const response = await safeFetch(url, { method, headers, body, signal });
   const text = await response.text();
   const contentType = response.headers.get("content-type") ?? "";
   const json = shapeBody(text, contentType);

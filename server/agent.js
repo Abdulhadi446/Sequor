@@ -7,8 +7,9 @@
 // knowledge_search / remember tools, then the final JSON contract answer.
 
 import { contractInstruction } from "./contract.js";
-import { resolveCredential, resolveForNode } from "./credentials.js";
+import { credentialAllowsPrivate, resolveCredential, resolveForNode } from "./credentials.js";
 import { agentSystemPrompt, createToolbox, getAgent } from "./agents.js";
+import { assertSafeUrl, safeFetch } from "./security.js";
 import {
   agentTools,
   buildAgentContext,
@@ -59,6 +60,8 @@ function authHeaders(credential) {
 
 async function chat({ credential, model, messages, temperature, signal, tools = null, jsonMode = true }) {
   const url = `${credential.baseUrl}/chat/completions`;
+  const allowPrivate = credentialAllowsPrivate(credential);
+  await assertSafeUrl(url, { allowPrivate, what: "Model endpoint" });
   const payload = { model, temperature, messages };
   if (tools?.length) {
     payload.tools = tools;
@@ -68,12 +71,12 @@ async function chat({ credential, model, messages, temperature, signal, tools = 
   }
 
   const send = () =>
-    fetch(url, {
+    safeFetch(url, {
       method: "POST",
       headers: authHeaders(credential),
       body: JSON.stringify(payload),
       signal,
-    });
+    }, { allowPrivate, what: "Model endpoint" });
 
   let response = await send();
   let text = await response.text();

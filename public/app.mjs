@@ -104,6 +104,8 @@ const state = {
   user: null,
   authMode: "login",
   legacyCount: 0,
+  signupOpen: true,
+  capabilities: { exec: true },
 };
 
 const el = {
@@ -762,6 +764,7 @@ function tidyAndSave() {
 function openAddPopover(clientX, clientY, sourceNode) {
   state.addFrom = sourceNode?.id ?? null;
   el.popList.innerHTML = Object.entries(NODE_META)
+    .filter(([type]) => state.capabilities?.exec !== false || (type !== "bash" && type !== "code"))
     .map(
       ([type, meta]) => `
       <button class="pop-item" data-type="${type}">
@@ -3346,6 +3349,7 @@ function renderUser() {
 }
 
 function setAuthMode(mode) {
+  if (mode === "signup" && !state.signupOpen) return;
   state.authMode = mode;
   const signup = mode === "signup";
   $("#auth-title").textContent = signup ? "Create your account" : "Sign in";
@@ -3386,6 +3390,7 @@ async function bootWorkspace() {
   state.knowledge = data.knowledge ?? [];
   state.agents = data.agents ?? [];
   state.builtinTools = data.builtinTools ?? [];
+  state.capabilities = data.capabilities ?? { exec: true };
   state.agent = data.agent ?? null;
   renderUser();
   renderModelStatus();
@@ -3400,6 +3405,8 @@ async function start() {
   try {
     const session = await api("/api/auth/session");
     state.legacyCount = session.legacy ?? 0;
+    state.signupOpen = session.signupOpen !== false;
+    $("#auth-toggle").hidden = !state.signupOpen;
     if (session.user) {
       state.user = session.user;
       await bootWorkspace();

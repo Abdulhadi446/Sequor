@@ -13,8 +13,23 @@ import { createInterface } from "node:readline";
 import vm from "node:vm";
 import { renderTemplate, renderDeep } from "./template.js";
 import { resolveCredential } from "./credentials.js";
+import { assertSafeUrl, requireExec, safeFetch } from "./security.js";
 
 const MAX_STREAM = 200_000;
+
+// Child processes get the environment minus anything that looks like a secret
+// and minus this server's own SEQUOR_* settings, so a workflow cannot read the
+// operator's provider keys or database path out of `env`.
+const SECRET_ENV = /(KEY|SECRET|TOKEN|PASSWORD|PASSWD|PASSPHRASE|CREDENTIAL|PRIVATE|SESSION|COOKIE)/i;
+
+function childEnv(extra = {}) {
+  const env = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith("SEQUOR_") || SECRET_ENV.test(key)) continue;
+    env[key] = value;
+  }
+  return { ...env, ...extra };
+}
 
 function renderedJson(raw, input) {
   if (raw == null) return {};
@@ -59,7 +74,7 @@ export async function runFetchNode({ node, input, signal, userId }) {
   }
   const method = String(node.method || "GET").toUpperCase();
   const headers = renderedHeaders({ ...node, _userId: userId }, input);
-  const response = await fetch(url, { method, headers, signal, redirect: "follow" });
+  const response = await safeFetch(url, { method, headers, signal });
   const text = await response.text();
   const contentType = response.headers.get("content-type") ?? "";
   const elapsed = Date.now() - startedAt;
@@ -115,6 +130,7 @@ function unwrapRpc(message, method) {
 }
 
 async function mcpHttpRequest(endpoint, payload, { headers, sessionId, timeout }) {
+  await assertSafeUrl(endpoint, { what: "MCP endpoint" });
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -125,6 +141,7 @@ async function mcpHttpRequest(endpoint, payload, { headers, sessionId, timeout }
     },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(timeout),
+    redirect: "error",
   });
   const nextSession = response.headers.get("mcp-session-id") || sessionId || null;
   const text = await response.text();
@@ -196,9 +213,10 @@ export async function openHttpSession(endpoint, headers, timeout) {
 }
 
 export async function openStdioSession(command, { cwd, timeout, env } = {}) {
+  requireExec("The stdio MCP transport");
   const child = spawn("bash", ["-lc", command], {
     cwd: cwd || undefined,
-    env: { ...process.env, ...(env ?? {}) },
+    env: childEnv(env ?? {}),
     stdio: ["pipe", "pipe", "pipe"],
   });
   const pending = new Map();
@@ -338,6 +356,7 @@ export async function openMcpSession(server, timeout = 30000) {
 // ---- bash -----------------------------------------------------------------
 
 export async function runBashNode({ node, input }) {
+  requireExec("The Run command node");
   const command = String(renderTemplate(node.command ?? "", input)).trim();
   if (!command) throw new Error("Command node needs a command");
   const cwd = renderTemplate(node.cwd ?? "", input).trim() || process.cwd();
@@ -347,7 +366,7 @@ export async function runBashNode({ node, input }) {
   return await new Promise((resolve, reject) => {
     const child = spawn("bash", ["-lc", command], {
       cwd,
-      env: { ...process.env, SEQUOR_INPUT: JSON.stringify(input ?? {}) },
+      env: childEnv({ SEQUOR_INPUT: JSON.stringify(input ?? {}) }),
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
@@ -404,6 +423,7 @@ export async function runBashNode({ node, input }) {
 // ---- code -----------------------------------------------------------------
 
 export async function runCodeNode({ node, input }) {
+  requireExec("The Code node");
   const source = String(node.code ?? "").trim();
   if (!source) throw new Error("Code node needs some JavaScript");
   const timeout = Math.max(100, Number(node.timeout_ms) || 30000);

@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -11,6 +11,18 @@ mkdirSync(dirname(file), { recursive: true });
 export const db = new DatabaseSync(file);
 db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA foreign_keys = ON;");
+
+// The database holds password hashes, session hashes and encrypted provider
+// keys. Keep it readable by this OS user only (SQLite creates it 0644 by
+// default, so this runs after the file exists).
+try {
+  chmodSync(dirname(file), 0o700);
+  for (const path of [file, `${file}-wal`, `${file}-shm`]) {
+    if (existsSync(path)) chmodSync(path, 0o600);
+  }
+} catch {
+  /* some filesystems (and Windows) do not support these modes */
+}
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,

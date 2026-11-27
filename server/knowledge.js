@@ -11,8 +11,9 @@
 
 import { randomUUID } from "node:crypto";
 import * as db from "./db.js";
-import { resolveForNode } from "./credentials.js";
+import { credentialAllowsPrivate, resolveForNode } from "./credentials.js";
 import { renderText } from "./template.js";
+import { assertSafeUrl, safeFetch } from "./security.js";
 
 const LOCAL_MODEL = "hashed-256";
 const LOCAL_DIM = 256;
@@ -67,12 +68,15 @@ async function remoteEmbed(texts, { userId, credentialId, model }) {
   const credential = resolveForNode({ credential_id: credentialId || "" }, userId);
   const headers = { "content-type": "application/json" };
   if (credential.apiKey) headers.authorization = `Bearer ${credential.apiKey}`;
-  const response = await fetch(`${credential.baseUrl}/embeddings`, {
+  const url = `${credential.baseUrl}/embeddings`;
+  const allowPrivate = credentialAllowsPrivate(credential);
+  await assertSafeUrl(url, { allowPrivate, what: "Embeddings endpoint" });
+  const response = await safeFetch(url, {
     method: "POST",
     headers,
     body: JSON.stringify({ model: model || "text-embedding-3-small", input: texts }),
     signal: AbortSignal.timeout(30000),
-  });
+  }, { allowPrivate, what: "Embeddings endpoint" });
   const text = await response.text();
   if (!response.ok) {
     let detail = text.slice(0, 200);

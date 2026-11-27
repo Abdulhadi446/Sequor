@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import * as db from "./db.js";
 import * as credentials from "./credentials.js";
 import { openMcpSession, runBashNode, runFetchNode } from "./nodes.js";
+import { execAllowed, requireExec } from "./security.js";
 import { remember, searchKnowledge } from "./knowledge.js";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -409,6 +410,9 @@ export function getAgent(id, userId) {
 
 export function createAgent(userId, body = {}) {
   const name = String(body.name ?? "").trim() || "Untitled agent";
+  if (String(body.workspace ?? "").trim() && !execAllowed) {
+    throw new Error("Custom agent workspaces are disabled on this server. Set SEQUOR_ALLOW_EXEC=1 to allow them.");
+  }
   return mapAgent(
     db.createAgent({
       userId,
@@ -431,6 +435,9 @@ export function createAgent(userId, body = {}) {
 export function updateAgent(id, userId, body = {}) {
   const existing = getAgent(id, userId);
   if (!existing) return null;
+  if (String(body.workspace ?? "").trim() && !execAllowed) {
+    throw new Error("Custom agent workspaces are disabled on this server. Set SEQUOR_ALLOW_EXEC=1 to allow them.");
+  }
   return mapAgent(
     db.updateAgent(id, userId, {
       name: body.name === undefined ? existing.name : String(body.name).trim().slice(0, 120) || existing.name,
@@ -538,8 +545,13 @@ export function agentSystemPrompt(agent, nodePrompt) {
 // ---- tools ---------------------------------------------------------------
 
 function workspaceRoot(agent) {
-  const root = agent.workspace ? resolve(agent.workspace) : join(projectRoot, "data", "agent-workspace", agent.id);
-  return root;
+  if (agent.workspace) {
+    // A custom workspace widens what the file tools can read, so it follows
+    // the same switch as shell access.
+    requireExec("A custom agent workspace");
+    return resolve(agent.workspace);
+  }
+  return join(projectRoot, "data", "agent-workspace", agent.id);
 }
 
 function ensureWorkspace(root) {

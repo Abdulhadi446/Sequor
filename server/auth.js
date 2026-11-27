@@ -4,6 +4,7 @@
 import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import * as db from "./db.js";
+import { isSecureRequest } from "./security.js";
 
 const scryptAsync = promisify(scrypt);
 const KEY_LENGTH = 64;
@@ -75,6 +76,15 @@ export function loginBlocked(ip, email) {
   return entry.count >= 8;
 }
 
+// A real scrypt hash for an address that does not exist, so a login attempt
+// for an unknown email costs the same time as one for a known email.
+let decoy = null;
+
+async function burnLoginTime(password) {
+  if (!decoy) decoy = await hashPassword(randomBytes(24).toString("hex"));
+  await verifyPassword(String(password ?? ""), decoy);
+}
+
 function noteFailure(ip, email) {
   const key = throttleKey(ip, email);
   const entry = attempts.get(key);
@@ -92,6 +102,7 @@ export async function login({ email, password, ip }) {
   }
   const user = db.getUserByEmail(cleanEmail);
   const hash = user ? db.getPasswordHash(user.id) : null;
+  if (!hash) await burnLoginTime(password);
   const ok = hash ? await verifyPassword(String(password ?? ""), hash) : false;
   if (!ok) {
     noteFailure(ip, cleanEmail);
@@ -143,9 +154,7 @@ export function endSession(req) {
 }
 
 function isSecure(req) {
-  if (req.socket?.encrypted) return true;
-  const proto = String(req.headers["x-forwarded-proto"] ?? "").split(",")[0].trim();
-  return proto === "https";
+  return isSecureRequest(req);
 }
 
 export function setSessionCookie(req, res, token) {
@@ -154,6 +163,7 @@ export function setSessionCookie(req, res, token) {
     "Path=/",
     "HttpOnly",
     "SameSite=Lax",
+    "Priority=High",
     `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
   ];
   if (isSecure(req)) parts.push("Secure");
@@ -161,7 +171,7 @@ export function setSessionCookie(req, res, token) {
 }
 
 export function clearSessionCookie(req, res) {
-  const parts = [`${SESSION_COOKIE}=`, "Path=/", "HttpOnly", "SameSite=Lax", "Max-Age=0"];
+  const parts = [`${SESSION_COOKIE}=`, "Path=/", "HttpOnly", "SameSite=Lax", "Priority=High", "Max-Age=0"];
   if (isSecure(req)) parts.push("Secure");
   res.setHeader("set-cookie", parts.join("; "));
 }
