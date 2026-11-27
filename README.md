@@ -17,41 +17,55 @@
 
 ---
 
-## 📸 Screenshots & Media
+## 🎥 Demo Video
+
+A 35-second walkthrough: the node palette, an IF node with `true` / `false` outputs, a real run where the untaken branch is skipped, and the per-node execution log.
+
+[![Watch the Sequor demo](./docs/screenshots/demo-poster.png)](./docs/demo.mp4)
+
+▶ **[Watch the demo video](./docs/demo.mp4)** — 1440×860, 35s, MP4.
+
+| Time | What happens |
+|------|--------------|
+| 0:00 | Canvas with the **Paid order routing** workflow: webhook → edit fields → limit → IF → two branches → merge → no-op |
+| 0:06 | **Add node** palette: Trigger, Agent, Check, IF, Switch, Filter, Merge, Edit Fields, HTTP Request, Fetch, MCP tool, Run command, Code, Wait, Limit, No Operation, Stop and Error |
+| 0:12 | IF parameters: the condition `{{ status }} equals paid`, plus the note that the branch that does not fire is skipped |
+| 0:17 | **Test workflow**: statuses stream in live, the `true` branch turns green, `false` stays untouched |
+| 0:20 | Edit Fields output — the receipt message built from the incoming fields |
+| 0:24 | The `false` branch node: **Skipped** · `skipped: no incoming branch fired` |
+| 0:27 | **Agents** tab: model, credential, workspace, tool toggles and skills in one bundle |
+| 0:31 | **Executions** history with status, duration and trigger |
+
+## 📸 Screenshots
 
 <div align="center">
 
-| Canvas Editor | Run View |
+| Canvas Editor | IF Branching & Run Output |
 |:---:|:---:|
-| <img src="./docs/screenshots/canvas-editor.svg" alt="Canvas Editor" width="400"/> | <img src="./docs/screenshots/run-view.svg" alt="Run View" width="400"/> |
+| <img src="./docs/screenshots/editor.png" alt="Canvas Editor" width="400"/> | <img src="./docs/screenshots/run-output.png" alt="Run Output" width="400"/> |
 
-| Workflow List | Node Inspector |
+| Execution Log | Executions |
 |:---:|:---:|
-| <img src="./docs/screenshots/workflows.svg" alt="Workflow List" width="400"/> | <img src="./docs/screenshots/node-inspector.svg" alt="Node Inspector" width="400"/> |
+| <img src="./docs/screenshots/run-log.png" alt="Execution Log" width="400"/> | <img src="./docs/screenshots/executions.png" alt="Executions" width="400"/> |
 
-| Hero / Brand |
-|:---:|
-| <img src="./docs/screenshots/hero.svg" alt="Sequor Brand" width="400"/> |
-
-| Demo Video |
-|:---:|
-| <video src="./docs/demo.mp4" controls width="600"></video> |
+| Templates | Hero / Brand |
+|:---:|:---:|
+| <img src="./docs/screenshots/templates-flyout.png" alt="Templates" width="400"/> | <img src="./docs/screenshots/hero.svg" alt="Sequor Brand" width="400"/> |
 
 </div>
-
-> 🎥 **Demo Video:** Now available (docs/demo.mp4)
 
 ---
 
 ## 📋 Table of Contents
 
+- [Demo Video](#-demo-video)
+- [Screenshots](#-screenshots)
 - [What is Sequor?](#-what-is-sequor)
 - [The Problem](#-the-problem)
 - [The Solution](#-the-solution)
 - [Architecture](#-architecture)
 - [Features](#-features)
 - [Quick Start](#-quick-start)
-- [Demo Video](#-demo-video)
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Workflow Templates](#-workflow-templates)
@@ -224,13 +238,16 @@ graph TB
 
 - ✅ **Visual Canvas Editor** — Drag, drop, and connect nodes
 - ✅ **Agent-per-Node Architecture** — Each node is a real coding agent
+- ✅ **IF / Else Branching** — `true` and `false` outputs drawn on the canvas; the branch that does not fire is marked skipped, never faked
+- ✅ **n8n-Style Flow Control** — Switch (rule per output + fallback), Filter, Merge (combine / append / first), Wait, Limit, No Operation, Stop and Error
+- ✅ **Direct Nodes, No Model Needed** — HTTP request, URL fetch, MCP tool call, shell command, JavaScript code, knowledge search
 - ✅ **Output Contracts** — Validated structured output with automatic retries
 - ✅ **Check Nodes** — Route to pass, retry, or fail
 - ✅ **Resume from Failure** — Restart from failed node without redoing earlier work
 - ✅ **Live Run View** — Real-time per-node status, logs, outputs, duration, cost
 - ✅ **Multiple Triggers** — Manual, cron with timezone, webhook
 - ✅ **MCP Server Support** — Attach MCP servers per node
-- ✅ **Starter Templates** — Daily blog, social video, cold outreach, webhook relay, fetch → code → brief
+- ✅ **Starter Templates** — Daily blog, cold outreach, repo watch, fetch → code → brief, webhook relay
 - ✅ **Account Authentication** — Sign up, sign in, session cookies, per-user data isolation
 - ✅ **Encrypted Credentials** — Store provider API keys server-side, pick per node
 - ✅ **Knowledge Bases** — Local hashed or remote embeddings, searchable by agents
@@ -238,7 +255,7 @@ graph TB
 - ✅ **HTTP & Fetch Nodes** — Real API calls, shaped with JavaScript code nodes
 - ✅ **Scheduler** — Active workflows fire on schedule even when the editor is closed
 - ✅ **Self-Hosted** — Run on your own infrastructure
-- ✅ **Model-Agnostic** — Works with OpenAI, Anthropic, or any OpenAI-compatible API
+- ✅ **Model-Agnostic** — Works with OpenAI, Anthropic, OpenRouter, or any OpenAI-compatible API
 - ✅ **Bring Your Own Key** — Use your preferred LLM provider
 
 ---
@@ -264,15 +281,15 @@ open http://127.0.0.1:3000
 
 > 🎉 **That's it!** On first launch you create an account, then a starter workflow is pre-loaded for you.
 
-### 🐳 Docker (Optional)
+On boot the server prints what it found:
 
-```bash
-# Build the image
-docker build -t sequor .
-
-# Run the container
-docker run -p 3000:3000 sequor
 ```
+Sequor listening on http://127.0.0.1:3000
+Accounts: 0 · no environment key
+Create the first account in the browser to get started.
+```
+
+Everything you create lives in `data/sequor.db` (SQLite) and the cookie-signing key in `data/.secret` — back up that folder to back up workflows, runs, credentials and accounts.
 
 ---
 
@@ -341,11 +358,45 @@ sequenceDiagram
 
 ### Node Types
 
-| Node Type | Purpose | Example |
-|-----------|---------|---------|
-| **Trigger** | Start a workflow | Manual, cron, webhook |
-| **Agent** | Execute a focused task | Research, write, analyze |
-| **Check** | Validate output | Schema validation, business logic |
+Every node runs for real: real model calls, real HTTP requests, real shell commands.
+
+| Node | Purpose |
+|------|---------|
+| **Trigger** | Start a workflow — manual, schedule (with timezone) or webhook. Carries a sample payload for test runs |
+| **Agent** | One focused model call with a prompt, output contract, tools, knowledge bases and retries |
+| **Check** | Review the previous handoff and route to pass, retry or fail |
+| **IF** | Two outputs, `true` and `false`. Conditions compare `{{ field }}` templates (or bare field names), `AND` / `OR`, numeric when both sides look numeric |
+| **Switch** | One output per rule plus an optional fallback; the first matching rule wins |
+| **Filter** | Keeps the item when the condition passes, drops it (and skips everything downstream) when it does not |
+| **Merge** | Combine the outputs of several branches: `combine` fields, `append` items, or take the `first` input |
+| **Edit Fields (Set)** | Set fields from templates, keeping or dropping the incoming fields |
+| **Limit** | Keep the first *n* entries of an array field |
+| **Wait** | Pause for seconds, minutes or hours (bounded) |
+| **No Operation** | Pass the input through, useful as a named end point |
+| **Stop and Error** | End the run with your own message |
+| **HTTP Request** | Method, URL, headers, body and a credential from the server |
+| **Fetch** | Download a URL and hand back its text or JSON |
+| **MCP Tool** | Call one tool on an attached MCP server |
+| **Run command** | Run a shell command on this machine |
+| **Code** | Run JavaScript against the incoming item |
+| **Knowledge search** | Retrieve from the knowledge bases and workspace memory attached to the node |
+
+### Branching: IF / else on the canvas
+
+Branching nodes render one output port per branch. Drag from `true` or `false` to wire the two paths; edges remember which branch they belong to.
+
+```mermaid
+graph LR
+    T[Trigger] --> S[Edit Fields]
+    S --> I{IF · paid?}
+    I -->|true| R[Send receipt]
+    I -->|false| F[Payment follow-up]
+    R --> M[Merge branches]
+    F --> M
+    M --> D[Done]
+```
+
+At run time exactly one branch fires. The nodes on the other path are recorded as **skipped** (`skipped: no incoming branch fired`) instead of silently succeeding, so a green run really means every expected step ran. Branching nodes are never restored from the resume cache, so resuming a failed run re-evaluates the condition against the current data.
 
 ### Example: Daily Blog Workflow
 
@@ -475,6 +526,61 @@ graph TD
 | `/api/runs/:id/resume` | POST | Resume from failure |
 | `/api/templates` | GET | List starter templates |
 | `/api/templates/:key` | POST | Create workflow from template |
+| `/api/auth/session` | GET | Current user and setup state |
+| `/api/auth/signup` | POST | Create the first (or another) account |
+| `/api/auth/login` | POST | Sign in and receive a session cookie |
+| `/api/auth/logout` | POST | End the session |
+| `/api/credentials` | GET / POST | List provider keys, add one (stored encrypted server-side) |
+| `/api/knowledge` | GET / POST | List knowledge bases, create one |
+| `/api/knowledge/:id/documents` | GET / POST | List or add documents |
+| `/api/agents` | GET / POST | List agents, create one |
+| `/api/agents/import` | POST | Import an `opencode.json` (+ AGENTS.md / skills) |
+| `/api/agents/:id/test` | POST | Send one live test prompt through the agent |
+
+Workflow and run endpoints require the session cookie; webhook calls use `/api/workflows/:id/hook?token=…` instead.
+
+### 🔒 Security & production checklist
+
+Sequor is a single-tenant-friendly self-hosted tool: an account can run whatever the server process can. The defaults below are what a public deployment gets, and the boot log prints the active policy (`Security: public · shell/JS nodes disabled · …`) so you can see it.
+
+**Accounts and sessions**
+
+- Passwords are scrypt-hashed with a per-user salt; login compares in constant time and burns the same time for unknown emails, so it does not reveal which addresses exist.
+- Session tokens are 256-bit random values stored only as SHA-256 hashes. The cookie is `HttpOnly; SameSite=Lax` and becomes `Secure` as soon as the request arrives over TLS.
+- Sign-ups default to `first-user`: the first account can be created, later ones are refused. Set `SEQUOR_SIGNUP=open` for a team server, `closed` to freeze accounts entirely.
+- Requests are rate limited per address: sign-in 20 / 5 min, sign-up 5 / hour, API 900 / min, webhook 60 / min per workflow.
+- Every state-changing request must be same-origin (`Origin` plus `Sec-Fetch-Site`), so a session cookie cannot be driven from another site.
+
+**Data isolation**
+
+- Every workflow, run, credential, agent, knowledge base and memory query is scoped with `user_id`; another account's id returns `404`, not `403`, so the existence of a resource is not disclosed. Webhook URLs are the one deliberate exception: they are token-authenticated for external callers.
+- Saved provider keys are encrypted with AES-256-GCM under a key file (`data/.secret`, mode `0600`). The browser only ever sees a `••••last4` hint. The SQLite database and its directory are chmod `0600` / `0700` on startup.
+
+**What the server refuses to run**
+
+- `bash`, `code`, stdio MCP servers and custom agent workspaces execute with the server's own privileges, so they are **off** whenever the process is public (`NODE_ENV=production` or `HOST` not loopback). They stay on for a loopback dev server, and `SEQUOR_ALLOW_EXEC=1` turns them back on anywhere. Shell children do not inherit `SEQUOR_*` or anything that looks like a key, token or password.
+- Outbound requests (HTTP/Fetch nodes, model and embeddings endpoints, MCP over HTTP, every redirect hop) are checked before they are made: non-HTTP schemes, cloud metadata endpoints (`169.254.169.254`, `metadata.google.internal`, …), loopback, link-local and private ranges are refused. A local model server (Ollama) is exempt; set `SEQUOR_ALLOW_PRIVATE_NETWORK=1` to allow LAN/loopback targets deliberately.
+- 5xx responses return a generic message; paths, SQL and stack traces stay in the server log.
+
+**Response headers**
+
+- `Content-Security-Policy` (`default-src 'self'`, no inline scripts, `frame-ancestors 'none'`), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, COOP/CORP `same-origin`, and a restrictive `Permissions-Policy`.
+- `Strict-Transport-Security` is added whenever the request is seen over HTTPS.
+- Request headers time out after 20 s, whole requests after 60 s, and a client may send at most 100 headers.
+
+**Deploying behind TLS**
+
+```bash
+NODE_ENV=production HOST=127.0.0.1 PORT=3000 SEQUOR_TRUST_PROXY=1 npm start
+```
+
+Terminate TLS in nginx, Caddy or Cloudflare Tunnel and forward `X-Forwarded-Proto` / `X-Forwarded-For`. `SEQUOR_TRUST_PROXY=1` makes the server read those headers; leave it off when the port is directly exposed, otherwise a client can spoof its own address. Without TLS the session cookie cannot be marked `Secure`, so treat plain HTTP as a development-only setup.
+
+**Known limits**
+
+- There are no roles inside an account: anyone who can sign in can run every workflow that account owns. Keep sign-ups `first-user`/`closed` on the public internet, or put the app behind an identity-aware proxy.
+- The SSRF check resolves a hostname before connecting, and `fetch` resolves it again when it connects; it stops misconfiguration and metadata access, not an attacker who controls DNS for a hostname.
+- Back up `data/` (database plus `.secret`). Losing the key file makes saved credentials unreadable.
 
 ### Environment Variables
 
@@ -482,9 +588,18 @@ graph TD
 |----------|---------|-------------|
 | `PORT` | `3000` | Server port |
 | `HOST` | `127.0.0.1` | Server host |
-| `OPENAI_API_KEY` | — | OpenAI API key (optional) |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Model to use |
-| `ANTHROPIC_API_KEY` | — | Anthropic API key (optional) |
+| `SEQUOR_DB` | `data/sequor.db` | SQLite database file (accounts, workflows, runs, credentials) |
+| `SEQUOR_KEY_FILE` | `data/.secret` | File holding the 32-byte key that encrypts saved credentials |
+| `SEQUOR_API_KEY` | — | Fallback provider key used when a node has no credential |
+| `SEQUOR_API_BASE` | `https://api.openai.com/v1` | OpenAI-compatible base URL |
+| `SEQUOR_MODEL` | `gpt-4o-mini` | Default model for nodes and agents |
+| `OPENAI_API_KEY` | — | Alias for `SEQUOR_API_KEY` |
+| `SEQUOR_PRICE_IN` / `SEQUOR_PRICE_OUT` | `0` | Per-1K-token prices used for run cost estimates |
+| `NODE_ENV` | — | `production` turns on the public-host security defaults |
+| `SEQUOR_SIGNUP` | `first-user` | Who may create an account: `open`, `first-user`, `closed` |
+| `SEQUOR_ALLOW_EXEC` | off when public | Allow `bash`, `code`, stdio MCP and custom agent workspaces |
+| `SEQUOR_ALLOW_PRIVATE_NETWORK` | off when public | Allow outbound requests to loopback and private ranges |
+| `SEQUOR_TRUST_PROXY` | `0` | Read `X-Forwarded-For` / `X-Forwarded-Proto` from a reverse proxy |
 
 ---
 
